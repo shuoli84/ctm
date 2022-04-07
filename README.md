@@ -1,8 +1,8 @@
 # Intro
 ctm(custom toolchain manager) is a tool helps you to build and manage custom rust toolchains.
 Maybe you want to tweak some rust compiler code and use it to build against several crates
- to see whether anything different. Or try build dust with several profiles (min size, max performance) 
- and benchmark it with real data?
+to see whether anything different. Or try build dust with several profiles (min size, max performance) 
+and benchmark it with real data?
 
 # Usage
 
@@ -30,6 +30,7 @@ ctm build-toolchain
 # build crates for each toolchain-profile
 ctm build-crate --crate dust
 
+# outputs in json format, you can use nushell to further filter or sort it
 [
   {
     "toolchain": "base",
@@ -140,3 +141,8 @@ count = 20
 args = [ "/home" ]
 
 ```
+
+# Q&A
+Q: How to use existing rust repo? 
+
+A: modify config.toml global.rust_repo, point to the absolute path of existing rust repo. A git reset --hard will be performed, so backup your un commited changes.
