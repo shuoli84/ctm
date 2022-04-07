@@ -1,0 +1,59 @@
+[global]
+# the project root, default is same folder as this file
+# project_root = ""
+
+# if the path is relative, then it is relative to project root 
+rust_repo = "rust"
+
+# the git revision
+rust_rev = "9d1b210"
+
+# all built toolchains will be put in this folder
+toolchains_root = "toolchains"
+
+# where to find patch files
+patch_root = "patches"
+
+# all crate will be checked out or copied to this folder
+build_root = "build"
+
+[[toolchains]]
+# base toolchain is build without any patch, it serves as base line
+name = "base"
+# the profiles for this toolchain, each of them will be used to build crate
+profiles = [ "minsize", "maxspeed" ]
+
+# optimize for speed
+[[profiles]]
+name = "maxspeed"
+
+# control cargo build profile with environment variables, refer to 
+# https://doc.rust-lang.org/cargo/reference/environment-variables.html
+[profiles.environ]
+CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "1"
+CARGO_PROFILE_RELEASE_LTO = "fat"
+CARGO_PROFILE_RELEASE_OPT_LEVEL = "3"
+
+# optimize for size
+[[profiles]]
+name = "minsize"
+
+[profiles.environ]
+CARGO_PROFILE_RELEASE_CODEGEN_UNITS = "1"
+CARGO_PROFILE_RELEASE_LTO = "fat"
+CARGO_PROFILE_RELEASE_OPT_LEVEL = "z"
+
+# sample crates
+[[crates]]
+name = "dust"
+git = "https://github.com/bootandy/dust.git"
+output_path = "release/dust"
+
+# run agains home folder
+[[crates.runs]]
+# name
+name = "dust_home"
+# how many times this cmd shoudl run
+count = 20
+# arguments to output_path
+args = [ "/home" ]
