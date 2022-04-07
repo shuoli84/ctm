@@ -1,6 +1,4 @@
 use crate::config::{Config, CrateOpt, Profile, ToolchainConfig};
-use std::{ffi::OsString, str::FromStr};
-use which::which_in;
 
 #[derive(Debug)]
 pub struct RunResult {
@@ -65,27 +63,11 @@ fn run_cmd_step(
         .to_str()
         .unwrap()
         .to_owned();
-    let output_path = std::path::PathBuf::from(&target_folder).join(&krate.output_path);
-    let output_folder = output_path.parent().unwrap().to_str().unwrap().to_owned();
-    let program = output_path
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_owned();
-    let path_env = std::env::var("PATH").unwrap_or_default();
-    let modified_path_env = format!("{output_folder}:{path_env}");
-    let cwd = std::env::current_dir()?;
-
-    let expanded_program = which_in(
-        OsString::from_str(program.as_str())?,
-        Some(modified_path_env),
-        cwd.clone(),
-    )?;
-    log::info!("expanded program: {:?}", expanded_program);
+    let program = std::path::PathBuf::from(&target_folder).join(&krate.output_path);
+    log::info!("running program: {:?}", program);
 
     let file_size = {
-        let meta = std::fs::metadata(&expanded_program)?;
+        let meta = std::fs::metadata(&program)?;
         meta.len()
     };
 
@@ -94,7 +76,7 @@ fn run_cmd_step(
     for run in krate.runs.iter() {
         for _i in 0..run.count {
             let start = std::time::Instant::now();
-            let output = std::process::Command::new(expanded_program.clone())
+            let output = std::process::Command::new(program.clone())
                 .args(run.args.as_slice())
                 .output()?;
 
