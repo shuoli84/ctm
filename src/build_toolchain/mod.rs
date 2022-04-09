@@ -45,20 +45,24 @@ pub fn build_toolchain(
             config_toml,
             format!(
                 r#"
-    # Includes one of the default files in src/bootstrap/defaults
-    profile = "user"
-    changelog-seen = 2
+# Includes one of the default files in src/bootstrap/defaults
+profile = "user"
+changelog-seen = 2
 
-    [install]
-    prefix = "{}"
-    sysconfdir = "etc"
+[install]
+prefix = "{}"
+sysconfdir = "etc"
 
-    [build]
-    docs = false
-    extended = true
-    tools = ["cargo", "src"]
-    "#,
-                toolchain_folder.to_str().unwrap().to_string()
+[build]
+docs = false
+extended = true
+tools = ["cargo", "src"]
+
+[rust]
+description = "{}"
+"#,
+                toolchain_folder.to_str().unwrap().to_string(),
+                toolchain.name
             ),
         )?;
 
