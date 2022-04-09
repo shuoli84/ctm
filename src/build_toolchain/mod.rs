@@ -4,6 +4,8 @@ pub struct ToolChainOpts {
     pub patch_folder: std::path::PathBuf,
     /// prefix folder is the folder to install all toolchains
     pub toolchains_root: std::path::PathBuf,
+    /// whether force to build
+    pub force: bool,
 }
 
 pub fn build_toolchain(
@@ -16,7 +18,7 @@ pub fn build_toolchain(
     let name = toolchain.name.clone();
     let toolchain_folder = toolchain.toolchains_root.join(&name);
 
-    if !toolchain_folder.join("bin/rustc").exists() {
+    if !toolchain_folder.join("bin/rustc").exists() || toolchain.force {
         // reset rust repo to base rev
         log::debug!("reset repo {:?} to {}", rust_repo, base_rev);
         cmd_lib::run_cmd! (

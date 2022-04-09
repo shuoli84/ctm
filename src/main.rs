@@ -27,6 +27,12 @@ enum Commands {
     BuildToolchain {
         #[clap(long = "config", default_value = "config.toml")]
         config: String,
+
+        #[clap(long = "force")]
+        force: bool,
+
+        #[clap()]
+        name: Option<String>,
     },
 
     #[clap(arg_required_else_help = true)]
@@ -73,7 +79,11 @@ fn main() -> anyhow::Result<()> {
             bootstrap::bootstrap(&config)?;
         }
 
-        Commands::BuildToolchain { config } => {
+        Commands::BuildToolchain {
+            config,
+            force,
+            name,
+        } => {
             let config = config::load_from_file(config.as_str())?;
 
             let global_option = config.global;
@@ -82,13 +92,21 @@ fn main() -> anyhow::Result<()> {
             let toolchains = config.toolchains;
 
             for toolchain in toolchains.into_iter() {
-                let toolchain = build_toolchain::ToolChainOpts {
-                    name: toolchain.name,
-                    patches: toolchain.patches,
-                    patch_folder: global_option.patches_root(),
-                    toolchains_root: global_option.toolchains_root(),
-                };
-                build_toolchain::build_toolchain(&rust_repo, &rust_rev, &toolchain)?;
+                let should_build = name
+                    .as_ref()
+                    .map(|n| n.eq(toolchain.name.as_str()))
+                    .unwrap_or(true);
+
+                if should_build {
+                    let toolchain = build_toolchain::ToolChainOpts {
+                        name: toolchain.name,
+                        patches: toolchain.patches,
+                        patch_folder: global_option.patches_root(),
+                        toolchains_root: global_option.toolchains_root(),
+                        force,
+                    };
+                    build_toolchain::build_toolchain(&rust_repo, &rust_rev, &toolchain)?;
+                }
             }
         }
 
