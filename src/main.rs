@@ -59,6 +59,9 @@ enum Commands {
 
         #[clap(long = "output", help = "output path", default_value = "-")]
         output: String,
+
+        #[clap(long = "profile")]
+        profile: Option<String>,
     },
 }
 
@@ -88,7 +91,6 @@ fn main() -> anyhow::Result<()> {
 
             let global_option = config.global;
             let rust_repo = global_option.rust_repo();
-            let rust_rev = global_option.rust_rev.clone();
             let toolchains = config.toolchains;
 
             for toolchain in toolchains.into_iter() {
@@ -100,12 +102,13 @@ fn main() -> anyhow::Result<()> {
                 if should_build {
                     let toolchain = build_toolchain::ToolChainOpts {
                         name: toolchain.name,
+                        rust_rev: toolchain.rust_rev.unwrap_or(global_option.rust_rev.clone()),
                         patches: toolchain.patches,
                         patch_folder: global_option.patches_root(),
                         toolchains_root: global_option.toolchains_root(),
                         force,
                     };
-                    build_toolchain::build_toolchain(&rust_repo, &rust_rev, &toolchain)?;
+                    build_toolchain::build_toolchain(&rust_repo, &toolchain)?;
                 }
             }
         }
@@ -135,6 +138,7 @@ fn main() -> anyhow::Result<()> {
             config,
             krate,
             output,
+            profile,
         } => {
             let config = config::load_from_file(config.as_str())?;
             let krate = config
@@ -143,7 +147,7 @@ fn main() -> anyhow::Result<()> {
                 .filter(|k| k.name.eq(&krate))
                 .nth(0)
                 .ok_or(anyhow::anyhow!("Not able to find crate"))?;
-            let run_result = run::run_cmds(&config, &krate)?;
+            let run_result = run::run_cmds(profile.as_deref(), &config, &krate)?;
             let rows = report::report_run_results(run_result);
             write_json_to_output(rows, output)?;
         }

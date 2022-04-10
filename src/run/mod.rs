@@ -28,6 +28,7 @@ pub struct OneRunResult {
 
 /// run command with each toolchain and krate by inject PATH
 pub fn run_cmds(
+    profile_to_run: Option<&str>,
     config: &crate::config::Config,
     krate: &crate::config::CrateOpt,
 ) -> anyhow::Result<RunResult> {
@@ -35,6 +36,13 @@ pub fn run_cmds(
 
     for toolchain in &config.toolchains {
         for profile in toolchain.profiles.iter() {
+            let should_run = profile_to_run
+                .map(|p| p.eq(profile.as_str()))
+                .unwrap_or(true);
+            if !should_run {
+                continue;
+            }
+
             let profile = config
                 .profiles
                 .iter()

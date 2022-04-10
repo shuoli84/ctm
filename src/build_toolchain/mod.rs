@@ -1,5 +1,6 @@
 pub struct ToolChainOpts {
     pub name: String,
+    pub rust_rev: String,
     pub patches: Vec<String>,
     pub patch_folder: std::path::PathBuf,
     /// prefix folder is the folder to install all toolchains
@@ -10,11 +11,11 @@ pub struct ToolChainOpts {
 
 pub fn build_toolchain(
     rust_repo: &std::path::Path,
-    base_rev: &str,
     toolchain: &ToolChainOpts,
 ) -> anyhow::Result<()> {
     log::info!("build toolchain for {}", toolchain.name);
 
+    let base_rev = &toolchain.rust_rev;
     let name = toolchain.name.clone();
     let toolchain_folder = toolchain.toolchains_root.join(&name);
 
@@ -24,12 +25,6 @@ pub fn build_toolchain(
         cmd_lib::run_cmd! (
             cd $rust_repo;
             git reset --hard $base_rev;
-        )?;
-
-        log::debug!("checkout master");
-        cmd_lib::run_cmd! (
-            cd $rust_repo;
-            git checkout master;
         )?;
 
         for patch_name in toolchain.patches.iter() {
@@ -52,7 +47,7 @@ profile = "user"
 changelog-seen = 2
 
 [install]
-prefix = "{}"
+prefix = "{prefix}"
 sysconfdir = "etc"
 
 [build]
@@ -61,10 +56,11 @@ extended = true
 tools = ["cargo", "src"]
 
 [rust]
-description = "{}"
+description = "{toolchain_name}+{base_rev}"
 "#,
-                toolchain_folder.to_str().unwrap().to_string(),
-                toolchain.name
+                prefix = toolchain_folder.to_str().unwrap().to_string(),
+                toolchain_name = toolchain.name,
+                base_rev = base_rev,
             ),
         )?;
 
